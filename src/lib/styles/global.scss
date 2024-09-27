@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html {
 	overflow: hidden;
-	position: relative;
+	// position: relative;
 	width: 100vw;
 	height: 100dvh;
 }

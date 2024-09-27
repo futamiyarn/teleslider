@@ -151,7 +151,7 @@
 	}
 
 	.editor-text {
-		@apply flex h-dvh w-full items-center;
+		@apply flex h-full w-full items-center;
 
 		.textarea {
 			@apply h-full w-full resize-none border-none bg-gray-100 p-2 outline-none dark:bg-gray-700 dark:text-white;
