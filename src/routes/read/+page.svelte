@@ -174,7 +174,7 @@
 
 <style lang="scss">
 	.text-container {
-		@apply flex h-screen items-center justify-center px-8;
+		@apply flex h-full items-center justify-center px-8;
 	}
 
 	.text {

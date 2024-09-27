@@ -139,7 +139,7 @@
 
 <style lang="scss">
 	.editor {
-		@apply flex h-screen w-full flex-col-reverse md:flex-col;
+		@apply flex h-full w-full flex-col-reverse md:flex-col;
 	}
 
 	.editor-header {
