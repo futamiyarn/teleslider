@@ -139,7 +139,7 @@
 
 <style lang="scss">
 	.editor {
-		@apply flex h-svh w-screen flex-col-reverse md:flex-col;
+		@apply flex h-dvh w-screen flex-col-reverse md:flex-col;
 	}
 
 	.editor-header {
@@ -151,7 +151,7 @@
 	}
 
 	.editor-text {
-		@apply flex h-svh w-full items-center;
+		@apply flex h-dvh w-full items-center;
 
 		.textarea {
 			@apply h-full w-full resize-none border-none bg-gray-100 p-2 outline-none dark:bg-gray-700 dark:text-white;
@@ -186,7 +186,7 @@
 		}
 
 		&.mobile {
-			@apply absolute inset-0 z-10 h-svh w-full;
+			@apply absolute inset-0 z-10 h-dvh w-full;
 		}
 	}
 
