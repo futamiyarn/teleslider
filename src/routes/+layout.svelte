@@ -20,7 +20,7 @@
 	}
 
 	onMount(() => {
-		// detectSWUpdate();
+		detectSWUpdate();
 
 		fetch('/read')
 			.then((res) => res.text())
