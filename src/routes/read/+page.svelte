@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { scriptStores } from '$lib/stores/scripts';
+	import { scriptLoaded, scriptStores } from '$lib/stores/scripts';
 	import { onDestroy, onMount } from 'svelte';
 	import iro from '@jaames/iro';
+	import { get } from 'svelte/store';
+	import { browser } from '$app/environment';
 
 	import ConfigIcon from '$lib/icons/config.svelte';
 	import InvertIcon from '$lib/icons/invert.svelte';
@@ -10,65 +12,73 @@
 	import ForwardIcon from '$lib/icons/forward.svelte';
 	import PlusIcon from '$lib/icons/plus.svelte';
 	import MinusIcon from '$lib/icons/minus.svelte';
+	import ColorResetIcon from '$lib/icons/colorReset.svelte';
 
+	// #region State variables
 	let messages: string[] = [];
 	let currentIndex = 1;
 	let colorPicker: any;
 	let pickerName: string;
 	let picker = 0;
 	let configVisible = false;
-
 	let backgroundColor = '#000000';
 	let textColor = '#ffffff';
 	let fontSize = 0;
+	// #endregion
 
+	// #region Local Storage functions
+	function loadFromLocalStorage() {
+		if (browser) {
+			backgroundColor = localStorage.getItem('backgroundColor') || '#000000';
+			textColor = localStorage.getItem('textColor') || '#ffffff';
+			fontSize = Number(localStorage.getItem('fontSize')) || Math.floor(window.innerWidth / 27);
+			currentIndex = get(scriptLoaded).currentPage;
+		}
+	}
+
+	function saveToLocalStorage() {
+		if (browser) {
+			localStorage.setItem('backgroundColor', backgroundColor);
+			localStorage.setItem('textColor', textColor);
+			localStorage.setItem('fontSize', fontSize.toString());
+		}
+	}
+	//#endregion
+
+	// #region Color manipulation functions
 	const revertColor = () => {
-		const oldBgColor = backgroundColor;
-		backgroundColor = textColor;
-		textColor = oldBgColor;
+		[backgroundColor, textColor] = [textColor, backgroundColor];
+		saveToLocalStorage();
 	};
 
-	const unsubscribe = scriptStores.subscribe((value) => {
-		messages = value;
+	function resetColor() {
+		if (picker === 1) {
+			backgroundColor = '#000000';
+		} else if (picker === 2) {
+			textColor = '#ffffff';
+		}
+		colorPicker.color.hexString = picker === 1 ? backgroundColor : textColor;
+		saveToLocalStorage();
+	}
+	//#endregion
 
-		if (messages.length === 0) return;
+	// #region Font size functions
+	const incrementFontSize = () => {
+		fontSize = Math.min(fontSize + 1, 100);
+		saveToLocalStorage();
+	};
+	const decrementFontSize = () => {
+		fontSize = Math.max(fontSize - 1, 8);
+		saveToLocalStorage();
+	};
+	//#endregion
 
-		document.addEventListener('keydown', handleKeyDown);
-
-		document.addEventListener('mousedown', (e) => {
-			if (e.button === 2) return;
-
-			if (e.target && (e.target as HTMLElement).closest('#slide')) {
-				if (picker === 0) handleClick(e);
-			}
-			if (e.target && !(e.target as HTMLElement).closest('.color-picker')) {
-				if ((e.target as HTMLElement).closest('.bg-color-picker')) {
-					picker != 1 ? (picker = 1) : (picker = 0);
-
-					if (picker === 1) {
-						colorPicker.color.hexString = backgroundColor;
-						pickerName = 'Background';
-					}
-					//
-				} else if ((e.target as HTMLElement).closest('.text-color-picker')) {
-					picker != 2 ? (picker = 2) : (picker = 0);
-
-					if (picker === 2) {
-						colorPicker.color.hexString = textColor;
-						pickerName = 'Text';
-					}
-				} else {
-					picker = 0;
-				}
-			}
-		});
-	});
-
+	// #region Navigation functions
 	function handleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'd' || e.key === 'ArrowRight') {
-			currentIndex = Math.min(currentIndex + 1, messages.length - 1);
+			currentIndex = Math.min(currentIndex + 1, messages.length);
 		} else if (e.key === 'a' || e.key === 'ArrowLeft') {
-			currentIndex = Math.max(currentIndex - 1, 0);
+			currentIndex = Math.max(currentIndex - 1, 1);
 		} else if (e.key === 'Escape') {
 			goto('/');
 		}
@@ -76,33 +86,87 @@
 
 	function handleClick(e: MouseEvent) {
 		const middle = window.innerWidth / 2;
-		if (e.clientX < middle) {
-			currentIndex = Math.max(currentIndex - 1, 1);
-		} else {
-			currentIndex = Math.min(currentIndex + 1, messages.length);
+		currentIndex =
+			e.clientX < middle
+				? Math.max(currentIndex - 1, 1)
+				: Math.min(currentIndex + 1, messages.length);
+	}
+	//#endregion
+
+	// #region Color picker functions
+	function toggleColorPicker(pickerType: number) {
+		picker = picker !== pickerType ? pickerType : 0;
+		if (picker !== 0) {
+			colorPicker.color.hexString = picker === 1 ? backgroundColor : textColor;
+			pickerName = picker === 1 ? 'Background' : 'Text';
 		}
 	}
+	//#endregion
 
+	// #region Lifecycle hooks
 	onMount(() => {
-		fontSize = Math.floor(window.innerWidth / 27);
+		loadFromLocalStorage();
 
-		colorPicker = new (iro.ColorPicker as any)('#color-picker', {
-			width: 130,
-			color: backgroundColor
-		});
+		if (browser) {
+			document.addEventListener('keydown', handleKeyDown);
+			document.addEventListener('mousedown', handleMouseDown);
 
-		colorPicker.on('color:change', (color: any) => {
-			if (picker === 1) backgroundColor = color.hexString;
-			else if (picker === 2) textColor = color.hexString;
-		});
+			colorPicker = new (iro.ColorPicker as any)('#color-picker', {
+				width: 130,
+				color: backgroundColor
+			});
+
+			colorPicker.on('color:change', (color: any) => {
+				if (picker === 1) backgroundColor = color.hexString;
+				else if (picker === 2) textColor = color.hexString;
+				saveToLocalStorage();
+			});
+		}
 	});
-
-	const incrementFontSize = () => (fontSize = Math.min(fontSize + 1, 100));
-	const decrementFontSize = () => (fontSize = Math.max(fontSize - 1, 8));
 
 	onDestroy(() => {
-		unsubscribe();
+		if (browser) {
+			document.removeEventListener('keydown', handleKeyDown);
+			document.removeEventListener('mousedown', handleMouseDown);
+		}
 	});
+
+	function handleMouseDown(e: MouseEvent) {
+		if (e.button === 2) return;
+
+		const target = e.target as HTMLElement;
+		if (target.closest('#slide')) {
+			if (picker === 0) handleClick(e);
+		}
+		if (!target.closest('.color-picker')) {
+			if (target.closest('.bg-color-picker')) {
+				toggleColorPicker(1);
+			} else if (target.closest('.text-color-picker')) {
+				toggleColorPicker(2);
+			} else {
+				picker = 0;
+			}
+		}
+	}
+	// #endregion
+
+	// #region Subscriptions
+	const unsubscribe = scriptStores.subscribe((value) => {
+		messages = value;
+	});
+	// #endregion
+
+	// #region Reactive statements
+	$: {
+		if (browser && currentIndex > 0) {
+			const changePage = { id: get(scriptLoaded).id, currentPage: currentIndex };
+			const storedScripts = JSON.parse(localStorage.getItem('savedScripts') || '[]').map(
+				(script: any) => (script.id === changePage.id ? changePage : script)
+			);
+			localStorage.setItem('savedScripts', JSON.stringify(storedScripts));
+		}
+	}
+	// #endregion
 </script>
 
 <svelte:head>
@@ -117,7 +181,7 @@
 	style="background-color: {backgroundColor}; color: {textColor}; font-size: {fontSize}px;"
 >
 	{#if messages.length > 0}
-		<p class="text">{messages[currentIndex - 1]}</p>
+		<p class="text">{@html messages[currentIndex - 1]}</p>
 	{:else}
 		<p class="text">redirect...</p>
 	{/if}
@@ -125,9 +189,19 @@
 
 <button class="config-btn" on:click={() => (configVisible = !configVisible)}><ConfigIcon /></button>
 
+<span class="count-page">{currentIndex} / {messages.length}</span>
+
 <div class="color-picker" class:active-picker={picker === 1 || picker === 2}>
 	<span>{pickerName}</span>
 	<div id="color-picker"></div>
+	<div class="color-input">
+		{#if picker === 1}
+			<input type="text" bind:value={backgroundColor} on:change={saveToLocalStorage} />
+		{:else if picker === 2}
+			<input type="text" bind:value={textColor} on:change={saveToLocalStorage} />
+		{/if}
+		<button on:click={resetColor}> <ColorResetIcon /> </button>
+	</div>
 </div>
 
 <nav class="script-settings" class:active-config={configVisible}>
@@ -146,6 +220,7 @@
 				type="number"
 				class="mx-2"
 				bind:value={fontSize}
+				on:change={saveToLocalStorage}
 				style={`width:calc(.5em + ${fontSize.toString().length}ch);`}
 			/>
 			<button on:click={incrementFontSize} class="control-btn"><PlusIcon /></button>
@@ -237,5 +312,19 @@
 
 	.config-btn {
 		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md bg-slate-600 px-2 py-2 text-xl font-bold text-white;
+	}
+
+	.count-page {
+		@apply fixed left-2 top-2 mb-2 mr-2 rounded-md px-2 py-2 font-bold text-white;
+	}
+
+	.color-input {
+		@apply flex gap-x-2;
+		input {
+			@apply w-36 text-black;
+		}
+		button {
+			@apply flex aspect-square w-6 items-center justify-center rounded-md bg-slate-600 text-white;
+		}
 	}
 </style>

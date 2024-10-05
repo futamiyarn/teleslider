@@ -1,16 +1,14 @@
 <script lang="ts">
-	import { originalScripts } from '$lib/stores/scripts.js';
-	import { get } from 'svelte/store';
-	import { onMount } from 'svelte';
-
-	import TurndownService from 'turndown';
-
+	import Tiptap from '$lib/components/Tiptap.svelte';
+	import { htmlScripts, scriptLoaded, scriptStores, textScripts } from '$lib/stores/scripts.js';
+	import { onDestroy, onMount } from 'svelte';
 	import ConfigIcon from '$lib/icons/config.svelte';
+	import { get } from 'svelte/store';
+	import { goto } from '$app/navigation';
+	import * as CryptoJS from 'crypto-js';
+	import { browser } from '$app/environment';
 
-	// #region variables
-
-	let inputValue = get(originalScripts) || '';
-
+	// #region State variables
 	let scriptContent = '';
 	let characters = 0;
 	let sentences = 0;
@@ -18,145 +16,227 @@
 	let totalMinutes = 0;
 	let wordsPerMinute = 0;
 
-	let WPMScale = 0;
-	let WPSScale = 0;
+	let WPMScale = 200;
+	let WPSScale = 8;
 
-	let includeComma: boolean | null = null;
-	let includeNewline: boolean | null = null;
+	let includeComma = true;
+	let includeNewline = false;
 
+	let isConfigVisible = false;
+	let isMobile = false;
+	let scriptID = '';
 	// #endregion
 
-	// #region local storage
-	function localStorageFunc() {
-		WPMScale = localStorage.getItem('WPMScale') ? Number(localStorage.getItem('WPMScale')) : 200;
-		WPSScale = localStorage.getItem('WPSScale') ? Number(localStorage.getItem('WPSScale')) : 8;
-		includeComma =
-			localStorage.getItem('includeComma') === '1'
-				? true
-				: localStorage.getItem('includeComma') === '0'
-					? false
-					: true;
+	// #region Local storage functions
+	function loadLocalStorageSettings() {
+		if (browser) {
+			WPMScale = Number(localStorage.getItem('WPMScale')) || 200;
+			WPSScale = Number(localStorage.getItem('WPSScale')) || 8;
+			includeComma = localStorage.getItem('includeComma') !== '0';
+			includeNewline = localStorage.getItem('includeNewline') === '1';
 
-		includeNewline =
-			localStorage.getItem('includeNewline') === '0'
-				? false
-				: localStorage.getItem('includeNewline') === '1'
-					? true
-					: false;
+			scriptID = getExistScriptId();
+		}
 	}
 
+	function saveLocalStorageSettings() {
+		if (browser) {
+			localStorage.setItem('WPMScale', WPMScale.toString());
+			localStorage.setItem('WPSScale', WPSScale.toString());
+			localStorage.setItem('includeComma', includeComma ? '1' : '0');
+			localStorage.setItem('includeNewline', includeNewline ? '1' : '0');
+		}
+	}
 	// #endregion
 
-	$: {
-		const turndownService = new TurndownService();
-		scriptContent = turndownService.turndown(inputValue.replace(/\[\[.*?\]\]/g, ''));
-		characters = scriptContent.length;
-		sentences = countSentences(scriptContent);
-		words = scriptContent.length < 1 ? 0 : scriptContent.trim().split(/\s+/).length;
-		totalMinutes = words / WPMScale;
-		wordsPerMinute = words / (totalMinutes || 1);
+	// #region Helper functions
+	function countSentences(content: string): number {
+		if (content.length === 0) return 0;
+		if (content.split(/\s+/).length === 1) return 1;
 
-		if (WPMScale > 0) localStorage.setItem('WPMScale', WPMScale.toString());
-		if (WPSScale > 0) localStorage.setItem('WPSScale', WPSScale.toString());
-		if (includeComma !== null) localStorage.setItem('includeComma', includeComma ? '1' : '0');
-		if (includeNewline !== null) localStorage.setItem('includeNewline', includeNewline ? '1' : '0');
-	}
-
-	function countSentences(scriptContent: string) {
-		// If the script is empty, return 0 sentences
-		if (scriptContent.length === 0) return 0;
-
-		// If the content has only one word/character, return 1 sentence
-		const wordCount = scriptContent.split(/\s+/).length;
-		if (wordCount === 1) return 1;
-
-		// Count sentences based on punctuation marks
-		let sentenceCount = (scriptContent.match(/[.!?]+/g) || []).length;
-
-		// If there are no punctuation marks but there is content, count as 1 sentence
+		let sentenceCount = (content.match(/[.!?]+/g) || []).length;
 		if (sentenceCount === 0) sentenceCount = 1;
-
-		// If the content does not end with a punctuation mark, add 1 to the sentence count
-		if (!/[.!?]$/.test(scriptContent)) sentenceCount += 1;
+		if (!/[.!?]$/.test(content)) sentenceCount += 1;
 
 		return sentenceCount;
 	}
 
-	const slide = () => {
+	function updateLayout() {
+		if (browser) {
+			isMobile = window.innerWidth < 768;
+		}
+	}
+	// #endregion
+
+	// #region Main functions
+	function processScriptContent(content: string) {
+		const cleanContent = content.replace(/\/\[.*?\]\//g, '');
+		characters = cleanContent.length;
+		sentences = countSentences(cleanContent);
+		words = cleanContent.length < 1 ? 0 : cleanContent.trim().split(/\s+/).length;
+		totalMinutes = words > 0 ? words / WPMScale : 0;
+		wordsPerMinute = totalMinutes > 0 ? words / totalMinutes : 0;
+
+		scriptID = getExistScriptId();
+	}
+
+	function getExistScriptId() {
+		const inputValue = get(textScripts);
+		if (!inputValue.trim() || inputValue.trim() === '') return '';
+
+		const id =
+			inputValue.match(/\/\[id:(.*)?\]\//)?.[1] ||
+			CryptoJS.MD5(inputValue.slice(0, 100)).toString();
+
+		const scriptExist = JSON.parse(localStorage.getItem('savedScripts') || '[]').find(
+			(script: any) => script.id === id
+		);
+
+		return scriptExist?.id || '';
+	}
+
+	function slide() {
+		const inputValue = get(textScripts);
 		if (!inputValue.trim()) {
 			alert('Please enter some text');
 			return;
 		}
 
-		let markdown = scriptContent.replace(/\n+/g, ' [[nl]] ');
-		console.log(inputValue);
+		const id =
+			inputValue.match(/\/\[id:(.*)?\]\//)?.[1] ||
+			CryptoJS.MD5(inputValue.slice(0, 100)).toString();
 
-		let words = markdown.trim().split(/\s+/);
-		console.log(words);
+		const htmlValue = get(htmlScripts)
+			.replace(/^<p>(.*)<\/p>$/, '$1')
+			.replace(/\/\[.*?\]\//g, '');
+		const newLineReplace = includeNewline ? ' [[nl]] ' : ' ';
+		let markdown = htmlValue.replace(/<\/p><p>/g, newLineReplace);
 
-		let validSentences = [];
+		const validSentences = processMarkdown(markdown);
 
+		updateScriptStore(id, validSentences);
+		goto('/read');
+	}
+
+	function processMarkdown(markdown: string): string[] {
+		const words = markdown.trim().split(/\s+/);
+		let validSentences: string[] = [];
+		let uncloseTag: string[] = [];
 		let validSentence = '';
 
-		for (const word of words) {
-			if (word.trim() === '[[nl]]') {
-				if (
-					validSentence.trim() !== '' &&
-					(validSentence.trim().endsWith('.') ||
-						validSentence.trim().endsWith('?') ||
-						validSentence.trim().endsWith('!'))
-				) {
-					validSentences.push(validSentence);
-					validSentence = '';
-				}
-				continue;
-			}
+		for (const [index, word] of words.entries()) {
+			validSentence = updateValidSentence(word, validSentence, uncloseTag);
+			uncloseTag = updateUncloseTags(word, uncloseTag);
 
-			validSentence += ' ' + word;
-
-			if (validSentence.trim().split(/\s+/).length >= WPSScale) {
-				if (word.includes('.') || word.includes('?') || word.includes('!')) {
-					validSentences.push(validSentence);
-					validSentence = '';
-				} else if (word.includes(',') && includeComma) {
-					validSentences.push(validSentence);
-					validSentence = '';
-				}
+			if (shouldEndSentence(word, index, words.length, validSentence)) {
+				validSentence = closeSentence(validSentence, uncloseTag, word);
+				validSentences.push(validSentence.trim());
+				validSentence = '';
 			}
 		}
 
-		console.log(validSentences);
+		return validSentences;
+	}
 
-		if (validSentences.length === 0) validSentences.push(validSentence);
+	function updateValidSentence(word: string, sentence: string, uncloseTag: string[]): string {
+		if (word === '[[nl]]') return sentence;
+		return (
+			sentence + ' ' + (uncloseTag.length > 0 && sentence === '' ? uncloseTag.join() : '') + word
+		);
+	}
 
-		// // Send valid sentences to the store
-		// scriptStores.set(validSentences);
-		// originalScripts.set(inputValue);
-		// goto('/read');
-	};
+	function updateUncloseTags(word: string, uncloseTag: string[]): string[] {
+		const tagHtml = /^<[^>]*>/;
+		const closeTag = /<\/[^>]*>$/;
+		if (tagHtml.test(word)) {
+			const match = word.match(tagHtml);
+			if (match) uncloseTag.push(match[0]);
+		}
+		if (closeTag.test(word)) uncloseTag.pop();
+		return uncloseTag;
+	}
 
-	let isConfigVisible = false;
-	let isMobile = false;
+	function shouldEndSentence(
+		word: string,
+		index: number,
+		totalWords: number,
+		validSentence: string
+	): boolean {
+		const regex = includeComma ? /[.,?!:]$/ : /[^.?!:]/;
+		const lastChar = word.slice(-1);
+		return (
+			(regex.test(word) &&
+				['.', ':', '?', '!'].includes(lastChar) &&
+				(validSentence.trim().split(/\s+/).length >= WPSScale ||
+					(includeNewline && word === '[[nl]]'))) ||
+			index === totalWords - 1
+		);
+	}
 
+	function closeSentence(sentence: string, uncloseTag: string[], word: string): string {
+		const closeTag = /<\/[^>]*>$/;
+		if (!closeTag.test(word)) {
+			sentence += uncloseTag
+				.map((c) => c.replace('<', '</'))
+				.reverse()
+				.join('');
+		}
+		return sentence;
+	}
+
+	function updateScriptStore(id: string, validSentences: string[]) {
+		if (browser) {
+			const storedScripts = JSON.parse(localStorage.getItem('savedScripts') || '[]');
+			let scriptExist = storedScripts.find((script: any) => script.id === id);
+
+			if (!scriptExist) {
+				scriptExist = { id, currentPage: 1 };
+				storedScripts.push(scriptExist);
+				localStorage.setItem('savedScripts', JSON.stringify(storedScripts));
+			}
+
+			scriptLoaded.set(scriptExist);
+			scriptStores.set(validSentences);
+		}
+	}
+	// #endregion
+
+	// #region Event handlers
 	function openConfig() {
 		isConfigVisible = !isConfigVisible;
 	}
+	// #endregion
 
-	function updateLayout() {
-		isMobile = window.innerWidth < 768; // Adjust this breakpoint as needed
-	}
-
-	function detectionTags() {
-		//
-	}
-
+	// #region Lifecycle hooks
 	onMount(() => {
-		localStorageFunc();
-		updateLayout();
-		window.addEventListener('resize', updateLayout);
-
-		return () => window.removeEventListener('resize', updateLayout);
+		if (browser) {
+			loadLocalStorageSettings();
+			updateLayout();
+			window.addEventListener('resize', updateLayout);
+		}
 	});
+
+	onDestroy(() => {
+		if (browser) {
+			window.removeEventListener('resize', updateLayout);
+		}
+	});
+	// #endregion
+
+	// #region Reactive statements
+	$: {
+		if (browser) {
+			saveLocalStorageSettings();
+		}
+	}
+
+	const unsubscribe = textScripts.subscribe((value) => {
+		scriptContent = value;
+		processScriptContent(scriptContent);
+	});
+
+	onDestroy(() => unsubscribe());
+	// #endregion
 </script>
 
 <svelte:head>
@@ -180,23 +260,21 @@
 	</section>
 	<div class="editor-content">
 		<section class="editor-text" class:full-width={isMobile}>
-			<div class="editor-controls">
-				<button on:click={detectionTags}> <b>B</b> </button>
-				<button on:click={detectionTags}> <i>I</i> </button>
-				<button on:click={detectionTags}> <u>U</u> </button>
-				<button on:click={detectionTags}> <s>S</s> </button>
-			</div>
-			<div class="textarea" contenteditable="true" id="textarea" bind:innerHTML={inputValue}></div>
+			<Tiptap />
 		</section>
 		{#if !isMobile || (isMobile && isConfigVisible)}
 			<section class="editor-config" class:mobile={isMobile}>
 				<label class="number">
-					<span>Words per minute:</span>
+					<span>Words per minute</span>
 					<input type="number" min="100" max="500" step="5" bind:value={WPMScale} />
 				</label>
 				<label class="number">
-					<span>Min words per slide:</span>
+					<span>Min words per slide</span>
 					<input type="number" min="5" max="100" bind:value={WPSScale} />
+				</label>
+				<label class="text">
+					<span>ID Transcript</span>
+					<input type="text" bind:value={scriptID} readonly />
 				</label>
 				<label class="checkbox">
 					<input type="checkbox" bind:checked={includeComma} />
@@ -239,18 +317,6 @@
 
 	.editor-text {
 		@apply flex h-full w-full flex-col-reverse md:flex-col;
-
-		.editor-controls {
-			@apply flex items-center justify-center gap-x-1 bg-slate-900/70 p-1;
-
-			button {
-				@apply flex h-8 w-8 items-center justify-center rounded-md bg-slate-700 px-2 py-1 font-semibold text-white hover:bg-slate-500;
-			}
-		}
-
-		.textarea {
-			@apply h-full w-full resize-none overflow-y-auto bg-gray-100 p-2 outline-none dark:bg-gray-700 dark:text-white;
-		}
 	}
 
 	.editor-config {
@@ -268,6 +334,14 @@
 
 				input {
 					@apply w-full rounded-md border border-none bg-transparent p-1 text-xl font-semibold dark:text-white;
+				}
+			}
+
+			&.text {
+				@apply flex-col;
+
+				input {
+					@apply w-full rounded-md border border-none bg-transparent p-1 dark:text-white;
 				}
 			}
 
