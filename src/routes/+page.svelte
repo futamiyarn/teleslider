@@ -45,6 +45,8 @@
 			localStorage.setItem('WPSScale', WPSScale.toString());
 			localStorage.setItem('includeComma', includeComma ? '1' : '0');
 			localStorage.setItem('includeNewline', includeNewline ? '1' : '0');
+
+			processScriptContent(scriptContent);
 		}
 	}
 	// #endregion
@@ -213,6 +215,7 @@
 			loadLocalStorageSettings();
 			updateLayout();
 			window.addEventListener('resize', updateLayout);
+			window.addEventListener('change', saveLocalStorageSettings);
 		}
 	});
 
@@ -224,12 +227,6 @@
 	// #endregion
 
 	// #region Reactive statements
-	$: {
-		if (browser) {
-			saveLocalStorageSettings();
-		}
-	}
-
 	const unsubscribe = textScripts.subscribe((value) => {
 		scriptContent = value;
 		processScriptContent(scriptContent);
