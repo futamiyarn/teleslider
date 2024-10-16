@@ -31,7 +31,7 @@
 		if (browser) {
 			backgroundColor = localStorage.getItem('backgroundColor') || '#000000';
 			textColor = localStorage.getItem('textColor') || '#ffffff';
-			fontSize = Number(localStorage.getItem('fontSize')) || Math.floor(window.innerWidth / 27);
+			fontSize = Number(localStorage.getItem('fontSize')) || Math.floor(window.innerWidth / 28);
 			currentIndex = get(scriptLoaded).currentPage;
 		}
 	}
@@ -153,6 +153,9 @@
 	// #region Subscriptions
 	const unsubscribe = scriptStores.subscribe((value) => {
 		messages = value;
+
+		const scriptLoad = get(scriptLoaded);
+		if (scriptLoad.currentPage > value.length) currentIndex = value.length;
 	});
 	// #endregion
 
@@ -166,6 +169,8 @@
 			localStorage.setItem('savedScripts', JSON.stringify(storedScripts));
 		}
 	}
+
+	onDestroy(() => unsubscribe());
 	// #endregion
 </script>
 
@@ -286,14 +291,14 @@
 		.control-btn,
 		.nav-btn,
 		.reverse-btn {
-			@apply mx-2 cursor-pointer rounded-md border-none bg-gray-700 px-2.5 py-1 text-xl font-bold text-white transition-colors duration-200;
+			@apply mx-2 cursor-pointer rounded-md border-none bg-slate-200 px-2.5 py-1 text-xl font-bold;
 
 			:global(svg) {
 				@apply my-1;
 			}
 
 			&:hover {
-				@apply bg-gray-600;
+				@apply bg-slate-500 text-white;
 			}
 		}
 
@@ -311,7 +316,7 @@
 	}
 
 	.config-btn {
-		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md bg-slate-600 px-2 py-2 text-xl font-bold text-white;
+		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md bg-slate-200 px-2 py-2 text-xl font-bold hover:bg-slate-500 hover:text-white;
 	}
 
 	.count-page {
@@ -324,7 +329,11 @@
 			@apply w-36 text-black;
 		}
 		button {
-			@apply flex aspect-square w-6 items-center justify-center rounded-md bg-slate-600 text-white;
+			@apply flex aspect-square w-6 items-center justify-center rounded-md bg-slate-200 hover:bg-slate-500 hover:text-white;
 		}
+	}
+
+	button {
+		@apply transition-colors duration-200 ease-in-out;
 	}
 </style>
