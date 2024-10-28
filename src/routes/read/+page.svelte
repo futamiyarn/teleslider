@@ -24,6 +24,7 @@
 	let backgroundColor = '#000000';
 	let textColor = '#ffffff';
 	let fontSize = 0;
+	let doubleSize = false;
 	// #endregion
 
 	// #region Local Storage functions
@@ -66,11 +67,13 @@
 
 	// #region Font size functions
 	const incrementFontSize = () => {
-		fontSize = Math.min(fontSize + 1, 100);
+		const size = doubleSize ? 5 : 1;
+		fontSize = Math.min(fontSize + size, 100);
 		saveToLocalStorage();
 	};
 	const decrementFontSize = () => {
-		fontSize = Math.max(fontSize - 1, 8);
+		const size = doubleSize ? 5 : 1;
+		fontSize = Math.max(fontSize - size, 8);
 		saveToLocalStorage();
 	};
 	//#endregion
@@ -85,6 +88,10 @@
 		else if ((e.shiftKey && e.key === 'E') || e.key === 'End') currentIndex = messages.length;
 		else if (e.altKey && e.key === 'q') revertColor();
 		else if (e.altKey && e.shiftKey && e.key === 'Q') resetColor();
+		else if (e.key === '[' || e.key === '{') decrementFontSize();
+		else if (e.key === ']' || e.key === '}') incrementFontSize();
+
+		doubleSize = !!e.shiftKey;
 	}
 
 	function handleClick(e: MouseEvent) {
@@ -267,7 +274,7 @@
 
 <style lang="scss">
 	.text-container {
-		@apply flex h-dvh items-center justify-center px-8;
+		@apply flex h-dvh items-center justify-center px-12;
 	}
 
 	.text {
