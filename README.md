@@ -1,38 +1,18 @@
-# create-svelte
+## Teleslider
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Teleslider is a simple and fast teleprompter in sideways. Designing and developing by Futami
 
-## Creating a project
+### Keybinds
 
-If you're seeing this, you've probably already done this step. Congrats!
+**Reader**
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+- `a` - Previous page
+- `d` - Next page
+- `shift + 1` or `home` - First page
+- `shift + e` or `end` - Last Page
+- `alt + q` - revert color
+- `alt + shift +q` - reset all color
+- `[` - decrease size text ones
+- `]` - increase size text ones
+- `shift + [` - decrease size text +5
+- `shift + ]` - increase size text +5

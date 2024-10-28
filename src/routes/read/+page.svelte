@@ -122,7 +122,10 @@
 			document.addEventListener('mousedown', handleMouseDown);
 
 			document.addEventListener('selectstart', (e) => {
-				if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+				if (
+					!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) &&
+					window.location.pathname === '/read'
+				) {
 					e.preventDefault();
 				}
 			});
