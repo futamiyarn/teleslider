@@ -81,6 +81,10 @@
 			currentIndex = Math.max(currentIndex - 1, 1);
 		} else if (e.key === 'Escape') {
 			goto('/');
+		} else if ((e.shiftKey && e.key === '1') || e.key === 'Home') {
+			currentIndex = 1;
+		} else if ((e.shiftKey && e.key === 'e') || e.key === 'End') {
+			currentIndex = messages.length;
 		}
 	}
 
@@ -110,6 +114,12 @@
 		if (browser) {
 			document.addEventListener('keydown', handleKeyDown);
 			document.addEventListener('mousedown', handleMouseDown);
+
+			document.addEventListener('selectstart', (e) => {
+				if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+					e.preventDefault();
+				}
+			});
 
 			colorPicker = new (iro.ColorPicker as any)('#color-picker', {
 				width: 130,
