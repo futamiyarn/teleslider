@@ -56,6 +56,8 @@
 			backgroundColor = '#000000';
 		} else if (picker === 2) {
 			textColor = '#ffffff';
+		} else {
+			[backgroundColor, textColor] = ['#000000', '#ffffff'];
 		}
 		colorPicker.color.hexString = picker === 1 ? backgroundColor : textColor;
 		saveToLocalStorage();
@@ -75,17 +77,14 @@
 
 	// #region Navigation functions
 	function handleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'd' || e.key === 'ArrowRight') {
+		if (e.key === 'd' || e.key === 'ArrowRight')
 			currentIndex = Math.min(currentIndex + 1, messages.length);
-		} else if (e.key === 'a' || e.key === 'ArrowLeft') {
-			currentIndex = Math.max(currentIndex - 1, 1);
-		} else if (e.key === 'Escape') {
-			goto('/');
-		} else if ((e.shiftKey && e.key === '1') || e.key === 'Home') {
-			currentIndex = 1;
-		} else if ((e.shiftKey && e.key === 'e') || e.key === 'End') {
-			currentIndex = messages.length;
-		}
+		else if (e.key === 'a' || e.key === 'ArrowLeft') currentIndex = Math.max(currentIndex - 1, 1);
+		else if (e.key === 'Escape') goto('/');
+		else if ((e.shiftKey && e.key === '!') || e.key === 'Home') currentIndex = 1;
+		else if ((e.shiftKey && e.key === 'E') || e.key === 'End') currentIndex = messages.length;
+		else if (e.ctrlKey && e.key === 'r') revertColor();
+		else if (e.ctrlKey && e.shiftKey && e.key === 'R') resetColor();
 	}
 
 	function handleClick(e: MouseEvent) {
