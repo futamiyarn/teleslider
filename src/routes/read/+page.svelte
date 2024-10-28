@@ -83,8 +83,8 @@
 		else if (e.key === 'Escape') goto('/');
 		else if ((e.shiftKey && e.key === '!') || e.key === 'Home') currentIndex = 1;
 		else if ((e.shiftKey && e.key === 'E') || e.key === 'End') currentIndex = messages.length;
-		else if (e.ctrlKey && e.key === 'q') revertColor();
-		else if (e.ctrlKey && e.shiftKey && e.key === 'Q') resetColor();
+		else if (e.altKey && e.key === 'q') revertColor();
+		else if (e.altKey && e.shiftKey && e.key === 'Q') resetColor();
 	}
 
 	function handleClick(e: MouseEvent) {
@@ -201,7 +201,11 @@
 	{/if}
 </div>
 
-<button class="config-btn" on:click={() => (configVisible = !configVisible)}><ConfigIcon /></button>
+<button
+	class="config-btn"
+	style="background-color: {textColor};"
+	on:click={() => (configVisible = !configVisible)}><ConfigIcon /></button
+>
 
 <span class="count-page" style="color: {textColor}">{currentIndex} / {messages.length}</span>
 
@@ -325,7 +329,7 @@
 	}
 
 	.config-btn {
-		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md bg-slate-200 px-2 py-2 text-xl font-bold hover:bg-slate-500 hover:text-white;
+		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md px-2 py-2 text-xl font-bold hover:opacity-85;
 	}
 
 	.count-page {
@@ -343,6 +347,6 @@
 	}
 
 	button {
-		@apply transition-colors duration-200 ease-in-out;
+		@apply transition-all duration-200 ease-in-out;
 	}
 </style>
