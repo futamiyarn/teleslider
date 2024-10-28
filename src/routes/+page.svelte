@@ -90,7 +90,7 @@
 
 <style lang="scss">
 	.editor {
-		@apply flex h-[94.5dvh] w-screen flex-col items-center justify-center bg-slate-100 pb-5;
+		@apply mb-8 mt-5 flex h-[94.5dvh] w-screen flex-col items-center justify-center bg-slate-100;
 
 		:global(.tiptap) {
 			@apply container h-full overflow-hidden overflow-y-scroll p-3 text-justify;
