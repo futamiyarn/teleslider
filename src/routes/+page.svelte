@@ -40,6 +40,14 @@
 		editor.on('transaction', () => (editor = editor));
 		editor.on('update', updateEditor);
 		editor.on('paste', updateEditor);
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+				e.preventDefault();
+
+				if (editor) editor.chain().focus().selectAll().run();
+			}
+		});
 	});
 
 	function closeImportant() {
@@ -47,6 +55,7 @@
 	}
 
 	function getExistingScripts(props_0: { editor: Editor }) {
+		editor?.chain().focus().run();
 		editor.commands.setContent(get(htmlScripts));
 	}
 </script>
