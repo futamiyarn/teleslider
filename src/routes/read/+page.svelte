@@ -83,8 +83,8 @@
 		else if (e.key === 'Escape') goto('/');
 		else if ((e.shiftKey && e.key === '!') || e.key === 'Home') currentIndex = 1;
 		else if ((e.shiftKey && e.key === 'E') || e.key === 'End') currentIndex = messages.length;
-		else if (e.ctrlKey && e.key === 'r') revertColor();
-		else if (e.ctrlKey && e.shiftKey && e.key === 'R') resetColor();
+		else if (e.ctrlKey && e.key === 'q') revertColor();
+		else if (e.ctrlKey && e.shiftKey && e.key === 'Q') resetColor();
 	}
 
 	function handleClick(e: MouseEvent) {
@@ -203,7 +203,7 @@
 
 <button class="config-btn" on:click={() => (configVisible = !configVisible)}><ConfigIcon /></button>
 
-<span class="count-page">{currentIndex} / {messages.length}</span>
+<span class="count-page" style="color: {textColor}">{currentIndex} / {messages.length}</span>
 
 <div class="color-picker" class:active-picker={picker === 1 || picker === 2}>
 	<span>{pickerName}</span>
