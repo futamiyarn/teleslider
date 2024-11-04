@@ -13,6 +13,7 @@
 	import PlusIcon from '$lib/icons/plus.svelte';
 	import MinusIcon from '$lib/icons/minus.svelte';
 	import ColorResetIcon from '$lib/icons/colorReset.svelte';
+	import EditIcon from '$lib/icons/EditIcon.svelte';
 
 	// #region State variables
 	let messages: string[] = [];
@@ -211,11 +212,12 @@
 	{/if}
 </div>
 
-<button
-	class="config-btn"
-	style="background-color: {textColor};"
-	on:click={() => (configVisible = !configVisible)}><ConfigIcon /></button
->
+<div class="config-buttons">
+	<button style="background-color: {textColor};" on:click={() => goto('/')}><EditIcon /></button>
+	<button style="background-color: {textColor};" on:click={() => (configVisible = !configVisible)}
+		><ConfigIcon /></button
+	>
+</div>
 
 <span class="count-page" style="color: {textColor}">{currentIndex} / {messages.length}</span>
 
@@ -338,8 +340,12 @@
 		@apply bottom-[4.5rem] flex sm:bottom-24;
 	}
 
-	.config-btn {
-		@apply fixed right-0 top-0 mr-2 mt-2 rounded-md px-2 py-2 text-xl font-bold hover:opacity-85;
+	.config-buttons {
+		@apply fixed right-0 top-0 mr-2 mt-2 flex gap-x-2;
+
+		button {
+			@apply rounded-md px-2 py-2 text-xl font-bold hover:opacity-85;
+		}
 	}
 
 	.count-page {

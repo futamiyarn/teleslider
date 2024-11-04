@@ -1,7 +1,7 @@
 export function countSentences(content: string) {
 	if (!content || content.length === 0) return 0;
 
-	content = content.trim();
+	content = content.trim().replace(/%%.*?%%/g, '');
 	if (content.split(/\s+/).length === 1) return 1;
 
 	let sentenceCount = (content.match(/[.!?:]+/g) || []).length;
@@ -17,10 +17,10 @@ export function countWPM(words: number, time: number) {
 }
 
 export const charCountConfig = {
-	textCounter: (text: string) => text.replace(/\/\[.*?\]\//g, '').length,
+	textCounter: (text: string) => text.replace(/%%.*?%%/g, '').length,
 	wordCounter: (text: string) =>
 		text
-			.replace(/\/\[.*?\]\//g, '')
+			.replace(/%%.*?%%/g, '')
 			.split(' ')
 			.filter((word) => word !== '').length
 };

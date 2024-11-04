@@ -8,6 +8,6 @@ export default function getId(text: string = '') {
 
 	const words = text.split(' ');
 	const truncatedText = words.slice(0, 16).join(' ');
-	const id = text.match(/\/\[id:(.*)?\]\//)?.[1] || CryptoJS.MD5(truncatedText).toString();
+	const id = text.match(/%%id:(.*?)%%/)?.[1] || CryptoJS.MD5(truncatedText).toString();
 	return id;
 }

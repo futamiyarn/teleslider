@@ -19,13 +19,13 @@ export default Extension.create({
 					const { from, to } = state.selection;
 					const text = state.doc.textBetween(from, to);
 
-					if (text.startsWith('/[') && text.endsWith(']/')) {
+					if (text.startsWith('%%') && text.endsWith('%%')) {
 						if (dispatch) {
 							tr.insertText(text.slice(2, -2), from, to);
 						}
 					} else {
 						if (dispatch) {
-							tr.insertText(`/[${text}]/`, from, to);
+							tr.insertText(`%%${text}%%`, from, to);
 						}
 					}
 

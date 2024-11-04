@@ -11,7 +11,7 @@ Teleslider is a simple and fast teleprompter in sideways. Designing and developi
 - `shift + 1` or `home` - First page
 - `shift + e` or `end` - Last Page
 - `alt + q` - revert color
-- `alt + shift +q` - reset all color
+- `alt + shift + q` - reset all color
 - `[` - decrease size text ones
 - `]` - increase size text ones
 - `shift + [` - decrease size text +5

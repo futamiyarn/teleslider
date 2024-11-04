@@ -4,10 +4,10 @@ import { htmlScripts } from './scripts';
 export default function getSlide(): string[] {
 	const WPSlide = Number(localStorage.getItem('WPSlide'));
 	const WPComma = Number(localStorage.getItem('WPComma'));
-	// Get html and change slidly
+	// Get html and change slightly
 	let htmlValue = get(htmlScripts)
 		.replace(/^<p>(.*)<\/p>$/, '$1')
-		.replace(/\/\[.*?\]\//g, '');
+		.replace(/%%.*?%%/g, '');
 
 	const newLineReplace = includeNewline() ? ' [[nl]] ' : ' ';
 
@@ -23,7 +23,9 @@ export default function getSlide(): string[] {
 	const tagHtml = /<[^/>]*>/;
 	const closeTag = /<\/[^/>]*>/;
 
-	for (let sentence of sentences) {
+	for (const s_entries of sentences.entries()) {
+		const index = s_entries[0];
+		let sentence = s_entries[1];
 		if (tagHtml.test(sentence)) {
 			const match = sentence.match(tagHtml);
 			if (match) uncloseTag.push(match[0]);
@@ -48,7 +50,7 @@ export default function getSlide(): string[] {
 				} else {
 					validSentence = validSentence + ' ' + s;
 
-					if (commaSentences.length === i + 1) {
+					if (commaSentences.length === i + 1 && validSentence.split(/\s+/).length >= WPSlide) {
 						validSentences.push(closingTag(validSentence, uncloseTag));
 						validSentence = '';
 					}
@@ -66,6 +68,10 @@ export default function getSlide(): string[] {
 				validSentences.push(closingTag(validSentence, uncloseTag));
 				validSentence = '';
 			}
+		}
+
+		if (sentences.length === index + 1) {
+			validSentences.push(closingTag(validSentence, uncloseTag));
 		}
 	}
 
