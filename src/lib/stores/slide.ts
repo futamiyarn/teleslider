@@ -70,7 +70,7 @@ export default function getSlide(): string[] {
 			}
 		}
 
-		if (sentences.length === index + 1) {
+		if (sentences.length === index + 1 && validSentence !== '') {
 			validSentences.push(closingTag(validSentence, uncloseTag));
 		}
 	}
