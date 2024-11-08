@@ -46,6 +46,5 @@
 		"crypto-js": "^4.2.0",
 		"mammoth": "^1.8.0",
 		"tiptap-markdown": "^0.8.10"
-	},
-	"packageManager": "yarn@4.5.1"
+	}
 }
