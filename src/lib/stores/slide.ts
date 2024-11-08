@@ -44,8 +44,11 @@ export default function getSlide(): string[] {
 						validSentences.push(closingTag(s, uncloseTag));
 					} else {
 						validSentence = validSentence + ' ' + s;
-						validSentences.push(closingTag(validSentence, uncloseTag));
-						validSentence = '';
+
+						if (validSentence.split(' ').length >= WPComma) {
+							validSentences.push(closingTag(validSentence, uncloseTag));
+							validSentence = '';
+						}
 					}
 				} else {
 					validSentence = validSentence + ' ' + s;
