@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: corepack enable
+      - run: yarn set version stable
       - name: Run install
         uses: borales/actions-yarn@v4
         with:
