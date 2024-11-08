@@ -2,8 +2,8 @@ import { get } from 'svelte/store';
 import { htmlScripts } from './scripts';
 
 export default function getSlide(): string[] {
-	const WPSlide = Number(localStorage.getItem('WPSlide'));
-	const WPComma = Number(localStorage.getItem('WPComma'));
+	const WPSlide = parseInt(localStorage.getItem('WPSlide') ?? '8');
+	const WPComma = parseInt(localStorage.getItem('WPComma') ?? '5');
 	// Get html and change slightly
 	let htmlValue = get(htmlScripts)
 		.replace(/^<p>(.*)<\/p>$/, '$1')
@@ -44,12 +44,10 @@ export default function getSlide(): string[] {
 						validSentences.push(closingTag(s, uncloseTag));
 					} else {
 						validSentence = validSentence + ' ' + s;
-
-						if (validSentence.split(' ').length >= WPComma) {
-							validSentences.push(closingTag(validSentence, uncloseTag));
-							validSentence = '';
-						}
+						validSentences.push(closingTag(validSentence, uncloseTag));
+						validSentence = '';
 					}
+					//
 				} else {
 					validSentence = validSentence + ' ' + s;
 
