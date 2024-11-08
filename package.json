@@ -1,6 +1,7 @@
 {
 	"name": "telesider",
 	"version": "0.0.1",
+	"packageManager": "yarn@4.5.1",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",

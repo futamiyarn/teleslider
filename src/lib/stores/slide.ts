@@ -39,6 +39,7 @@ export default function getSlide(): string[] {
 			const commaSentences = sentence.split(/(?<=[,])\s+/);
 
 			for (const [i, s] of commaSentences.entries()) {
+				console.log('Sentence: ', s);
 				if (s.split(' ').length >= WPComma) {
 					if (validSentence.trim() === '') {
 						validSentences.push(closingTag(s, uncloseTag));
