@@ -34,7 +34,8 @@
 			backgroundColor = localStorage.getItem('backgroundColor') || '#000000';
 			textColor = localStorage.getItem('textColor') || '#ffffff';
 			fontSize = Number(localStorage.getItem('fontSize')) || Math.floor(window.innerWidth / 28);
-			currentIndex = get(scriptLoaded).currentPage;
+			const getIndex = get(scriptLoaded).currentPage;
+			currentIndex = getIndex <= messages.length ? getIndex : 1;
 		}
 	}
 
